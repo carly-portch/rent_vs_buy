@@ -37,7 +37,7 @@ monthly_rent = st.sidebar.number_input("Monthly Rent ($)", value=2000)
 annual_rent_increase = st.sidebar.number_input("Annual Rent Increase (%)", value=3)
 investment_return = st.sidebar.number_input("Investment Return on Savings (%)", value=5)
 
-t.sidebar.header("Buying Details")
+st.sidebar.header("Buying Details")
 home_price = st.sidebar.number_input("Home Price ($)", value=400000)
 down_payment = st.sidebar.number_input("Down Payment ($)", value=80000)
 mortgage_rate = st.sidebar.number_input("Mortgage Interest Rate (%)", value=6)
