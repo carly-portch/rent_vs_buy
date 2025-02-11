@@ -2,3 +2,4 @@ numpy-financial
 matplotlib
 pandas
 streamlit
+numpy
