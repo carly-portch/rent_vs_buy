@@ -1,5 +1,6 @@
 import streamlit as st
 import numpy as np
+import numpy_financial as npf
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -16,7 +17,7 @@ def calculate_buying_cost(home_price, down_payment, loan_term, mortgage_rate,
                           property_tax, insurance, maintenance, hoa, appreciation,
                           selling_costs, years):
     loan_amount = home_price - down_payment
-    monthly_mortgage = np.pmt(mortgage_rate / 12 / 100, loan_term * 12, -loan_amount)
+    monthly_mortgage = npf.pmt(mortgage_rate / 12 / 100, loan_term * 12, -loan_amount)
     home_value = home_price
     total_costs = 0
     buy_costs = []
