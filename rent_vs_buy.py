@@ -30,14 +30,6 @@ def calculate_buying_cost(home_price, down_payment, loan_term, mortgage_rate, pr
     
     return costs
 
-def calculate_investment_growth(amount, years, rate=7):
-    investment_value = []
-    total = 0
-    for year in range(1, years + 1):
-        total = (total + amount * 12) * (1 + rate / 100)
-        investment_value.append(total)
-    return investment_value
-
 st.title("Rent vs Buy Calculator")
 
 st.sidebar.header("Renting Details")
@@ -57,7 +49,6 @@ years = st.sidebar.slider("Comparison Duration (Years)", 1, 50, 30)
 
 rent_costs = calculate_renting_cost(monthly_rent, rent_increase, years)
 buy_costs = calculate_buying_cost(home_price, down_payment, loan_term, mortgage_rate, property_tax, maintenance, appreciation, years)
-investment_value = calculate_investment_growth(monthly_rent, years)
 
 years_range = list(range(1, years + 1))
 
@@ -66,7 +57,6 @@ crossover_year = next((year + 1 for year in range(years) if buy_costs[year] < re
 fig, ax = plt.subplots()
 ax.plot(years_range, rent_costs, label="Total Renting Cost (Lost Money)", linestyle="--", color="red")
 ax.plot(years_range, buy_costs, label="Total Buying Cost (Fees & Interest)", linestyle="-", color="blue")
-ax.plot(years_range, investment_value, label="Potential Investment Growth", linestyle="-.", color="green")
 if crossover_year:
     ax.axvline(x=crossover_year, linestyle="dotted", color="purple", label=f"Crossover: Year {crossover_year}")
 ax.set_xlabel("Years")
@@ -81,5 +71,5 @@ else:
     st.subheader("Based on your inputs, renting remains more cost-effective over the entire period.")
 
 st.markdown("""
-**Disclaimer:** This analysis is based on assumptions about rent increases, property appreciation, mortgage costs, and investment returns. Actual outcomes may vary. Consider additional factors such as personal circumstances, market conditions, and opportunity costs before making a decision.
+**Disclaimer:** This analysis is based on assumptions about rent increases, property appreciation, mortgage costs, and interest rates. Actual outcomes may vary. Consider additional factors such as personal circumstances, market conditions, and opportunity costs before making a decision.
 """)
