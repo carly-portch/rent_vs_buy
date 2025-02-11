@@ -1,6 +1,7 @@
 import streamlit as st
 import numpy as np
 import matplotlib.pyplot as plt
+import numpy_financial as npf
 
 def calculate_renting_cost(rent, rent_increase, years):
     costs = []
@@ -13,7 +14,7 @@ def calculate_renting_cost(rent, rent_increase, years):
 
 def calculate_buying_cost(home_price, down_payment, loan_term, mortgage_rate, property_tax, maintenance, appreciation, years):
     loan_amount = home_price - down_payment
-    monthly_mortgage = np.pmt(mortgage_rate / 12 / 100, loan_term * 12, -loan_amount)
+    monthly_mortgage = npf.pmt(mortgage_rate / 12 / 100, loan_term * 12, -loan_amount)
     costs = []
     total_cost = 0
     home_value = home_price
@@ -47,7 +48,7 @@ buy_costs = calculate_buying_cost(home_price, down_payment, loan_term, mortgage_
 
 years_range = list(range(1, years + 1))
 
-crossover_year = next((year for year in range(years) if buy_costs[year] < rent_costs[year]), None)
+crossover_year = next((year + 1 for year in range(years) if buy_costs[year] < rent_costs[year]), None)
 
 fig, ax = plt.subplots()
 ax.plot(years_range, rent_costs, label="Total Renting Cost", linestyle="--", color="red")
