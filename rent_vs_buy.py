@@ -1,54 +1,75 @@
 import streamlit as st
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
+import numpy_financial as npf
 
-# Title of the app
+def calculate_renting_cost(rent, rent_increase, years):
+    costs = []
+    total_cost = 0
+    for year in range(1, years + 1):
+        total_cost += rent * 12
+        costs.append(total_cost)
+        rent *= (1 + rent_increase / 100)  # Increase rent annually
+    return costs
+
+def calculate_buying_cost(home_price, down_payment, loan_term, mortgage_rate, property_tax, maintenance, appreciation, years):
+    loan_amount = home_price - down_payment
+    monthly_mortgage = npf.pmt(mortgage_rate / 12 / 100, loan_term * 12, -loan_amount)
+    costs = []
+    total_cost = 0
+    home_value = home_price
+    equity = down_payment
+    
+    for year in range(1, years + 1):
+        mortgage_interest = (loan_amount * (mortgage_rate / 100))
+        yearly_cost = (monthly_mortgage * 12) + (property_tax * home_value) + (maintenance * home_value) - equity
+        total_cost += yearly_cost
+        costs.append(total_cost)
+        home_value *= (1 + appreciation / 100)
+        equity += (monthly_mortgage * 12) - mortgage_interest
+    
+    return costs
+
 st.title("Rent vs Buy Calculator")
 
-# Input fields for rent vs buy calculations
-rent_yearly = st.number_input("Annual Rent ($)", value=12000)
-buy_home_price = st.number_input("Home Price ($)", value=300000)
-down_payment = st.number_input("Down Payment ($)", value=60000)
-mortgage_rate = st.number_input("Mortgage Rate (%)", value=4) / 100
-loan_term_years = st.number_input("Mortgage Term (years)", value=30)
-property_tax_rate = st.number_input("Property Tax Rate (%)", value=1) / 100
-insurance_rate = st.number_input("Home Insurance Rate (%)", value=0.2) / 100
-maintenance_rate = st.number_input("Maintenance Rate (%)", value=1) / 100
+st.sidebar.header("Renting Details")
+monthly_rent = st.sidebar.number_input("Monthly Rent ($)", value=4000, step=100)
+rent_increase = st.sidebar.slider("Annual Rent Increase (%)", 0.0, 10.0, 2.0)
 
-# Calculate the monthly mortgage payment
-loan_amount = buy_home_price - down_payment
-monthly_rate = mortgage_rate / 12
-loan_term_months = loan_term_years * 12
-monthly_payment = loan_amount * monthly_rate / (1 - (1 + monthly_rate) ** -loan_term_months)
+st.sidebar.header("Buying Details")
+home_price = st.sidebar.number_input("Home Price ($)", value=600000, step=10000)
+down_payment = st.sidebar.number_input("Down Payment ($)", value=60000, step=1000)
+loan_term = st.sidebar.slider("Loan Term (Years)", 10, 30, 30)
+mortgage_rate = st.sidebar.slider("Mortgage Interest Rate (%)", 1.0, 10.0, 4.0)
+property_tax = st.sidebar.slider("Annual Property Tax Rate (%)", 0.0, 3.0, 1.0) / 100
+maintenance = st.sidebar.slider("Annual Maintenance Cost (%)", 0.0, 5.0, 1.0) / 100
+appreciation = st.sidebar.slider("Annual Home Appreciation (%)", 0.0, 5.0, 3.0)
 
-# Cumulative costs over time (30 years)
-years = np.arange(1, 31)  # 30 years
-rent_cost = rent_yearly * years  # cumulative rent costs
-buy_cost = np.zeros_like(years)
-buy_cost[0] = down_payment  # initial down payment
-for i in range(1, len(years)):
-    annual_buy_cost = (monthly_payment * 12) + (buy_home_price * property_tax_rate) + (buy_home_price * insurance_rate) + (buy_home_price * maintenance_rate)
-    buy_cost[i] = buy_cost[i-1] + annual_buy_cost
+years = st.sidebar.slider("Comparison Duration (Years)", 1, 50, 30)
 
-# Calculate the crossover point
-crossover_year = np.where(rent_cost >= buy_cost)[0][0]
+rent_costs = calculate_renting_cost(monthly_rent, rent_increase, years)
+buy_costs = calculate_buying_cost(home_price, down_payment, loan_term, mortgage_rate, property_tax, maintenance, appreciation, years)
 
-# Display results
-st.subheader("Results")
-st.write(f"The crossover occurs in year {crossover_year}, with costs as follows:")
-st.write(f"Rent cost at year {crossover_year}: ${rent_cost[crossover_year - 1]:,.2f}")
-st.write(f"Buy cost at year {crossover_year}: ${buy_cost[crossover_year - 1]:,.2f}")
+years_range = list(range(1, years + 1))
 
-# Plot the graph
+crossover_year = next((year + 1 for year in range(years) if buy_costs[year] < rent_costs[year]), None)
+
 fig, ax = plt.subplots()
-ax.plot(years, rent_cost, label='Rent Cost')
-ax.plot(years, buy_cost, label='Buy Cost')
-ax.axvline(x=crossover_year, color='r', linestyle='--', label=f'Crossover at Year {crossover_year}')
-ax.set_xlabel('Years')
-ax.set_ylabel('Cumulative Costs ($)')
-ax.set_title('Rent vs Buy Cumulative Costs')
+ax.plot(years_range, rent_costs, label="Total Renting Cost (Lost Money)", linestyle="--", color="red")
+ax.plot(years_range, buy_costs, label="Total Buying Cost (Fees & Interest)", linestyle="-", color="blue")
+if crossover_year:
+    ax.axvline(x=crossover_year, linestyle="dotted", color="purple", label=f"Crossover: Year {crossover_year}")
+ax.set_xlabel("Years")
+ax.set_ylabel("Total Cost ($)")
+ax.set_title("Rent vs Buy Financial Comparison")
 ax.legend()
-ax.grid(True)
-
-# Display the graph in Streamlit
 st.pyplot(fig)
+
+if crossover_year:
+    st.subheader(f"Based on your inputs, buying becomes more cost-effective than renting after {crossover_year} years.")
+else:
+    st.subheader("Based on your inputs, renting remains more cost-effective over the entire period.")
+
+st.markdown("""
+**Disclaimer:** This analysis is based on assumptions about rent increases, property appreciation, mortgage costs, and interest rates. Actual outcomes may vary. Consider additional factors such as personal circumstances, market conditions, and opportunity costs before making a decision.
+""")
