@@ -1,7 +1,4 @@
-streamlit
-pandas
+numpy-financial
 matplotlib
-plotly
-altair
-gspread
-oauth2client
+pandas
+streamlit
